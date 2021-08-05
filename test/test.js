@@ -52,14 +52,25 @@ describe ('Block', function() {
 });
 
 describe ('Blockchain', function() {
+    let blockchain;
+    before(function() {
+        blockchain = new BlockchainClass.Blockchain();
+    });
+
     describe ('initializeChain()', function() {
-        it('should create Genesis Block', function() {
-            let blockchain = new BlockchainClass.Blockchain();  
+        it('should create Genesis Block', function() {            
             const result = blockchain.chain[0];
             return expect(result.previousBlockHash).to.be.null &&
                 expect(result.time).to.not.be.null &&
-                expect(result.height).to.be.equal(0) &&
+                expect(result.height).to.equal(0) &&
                 expect(result.hash).to.not.be.null;
+        });
+    });
+
+    describe ('requestMessageOwnershipVerification()', function() {
+        it('should return message', function() {
+            const result = blockchain.requestMessageOwnershipVerification("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2");
+            return expect(result).to.eventually.matches(/^1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2:.*:starRegistry$/);
         });
     });
 }); 
