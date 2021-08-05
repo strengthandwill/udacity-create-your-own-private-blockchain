@@ -64,7 +64,18 @@ class Blockchain {
     _addBlock(block) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-           
+            try {
+                if (this.chain.length > 0) {
+                    block.previousBlockHash = this.chain[this.chain.length-1].hash;
+                }
+                block.time = new Date().getTime().toString().slice(0, -3);
+                block.height = this.chain.length;
+                block.hash = SHA256(JSON.stringify(block)).toString();
+                this.chain.push(block);
+                resolve(block);
+            } catch (error) {
+                reject(Error(error));
+            }
         });
     }
 
@@ -163,7 +174,6 @@ class Blockchain {
             
         });
     }
-
 }
 
 module.exports.Blockchain = Blockchain;   
