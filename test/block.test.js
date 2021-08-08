@@ -6,7 +6,7 @@ const expect = chai.expect;
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
-describe ('Block', function() {
+describe('Block', function() {
     let block;
 
     beforeEach(function() {
@@ -14,7 +14,7 @@ describe ('Block', function() {
         block.hash = SHA256(JSON.stringify(block)).toString();
     });
 
-    describe ('validate()', function() {
+    describe('validate()', function() {
         it('should be valid', function() {
             const result = block.validate();
             return expect(result).to.eventually.be.true;
@@ -27,7 +27,7 @@ describe ('Block', function() {
         });
     });
 
-    describe ('getBData()', function() {    
+    describe('getBData()', function() {    
         it('should be non-genesis block', function() {
             block.height = 1;
             const result = block.getBData();

@@ -6,7 +6,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const sinon = require('sinon');
 
-describe ('Blockchain', function() {
+describe('Blockchain', function() {
     const time = 1554145343000;
     const address = 'n1WSqPkDBXWnV3UGsiEkxyuJvxaRXrffLC';
     const message = `n1WSqPkDBXWnV3UGsiEkxyuJvxaRXrffLC:${time.toString().slice(0, -3)}:starRegistry`;
@@ -17,15 +17,19 @@ describe ('Blockchain', function() {
         "story": "Testing the story 4"
     };
 
+    const secondBlockHash = '027c5ec0bc7c571264e91d04fbea28761b543f7afbe3862bbf89aff8d36ae71a';
+    const secondBlockBody = '7b2264617461223a226e31575371506b444258576e563355477369456b7879754a76786152587266664c433a313535343134353334333a737461725265676973747279227d';
+    const secondBlockPreviousBlockHash = 'a7a0cecfd2ba3221a33a6615780b299326eb7a837c63d7110a864cd092f193e3';
+
     let blockchain;
     let clock;
-    
+
     beforeEach(function() {
         clock = sinon.useFakeTimers({ now: time });
         blockchain = new BlockchainClass.Blockchain();
     });
 
-    describe ('initializeChain()', function() {
+    describe('initializeChain()', function() {
         const hash = 'a7a0cecfd2ba3221a33a6615780b299326eb7a837c63d7110a864cd092f193e3';
         const body = '7b2264617461223a2247656e6573697320426c6f636b227d';
         
@@ -47,11 +51,7 @@ describe ('Blockchain', function() {
         });
     });
 
-    describe ('submitStar()', function() {
-        const hash = '027c5ec0bc7c571264e91d04fbea28761b543f7afbe3862bbf89aff8d36ae71a';
-        const body = '7b2264617461223a226e31575371506b444258576e563355477369456b7879754a76786152587266664c433a313535343134353334333a737461725265676973747279227d';
-        const previousBlockHash = 'a7a0cecfd2ba3221a33a6615780b299326eb7a837c63d7110a864cd092f193e3';
-
+    describe('submitStar()', function() {
         beforeEach(function() {
             clock = sinon.useFakeTimers({ now: time });
         });
@@ -59,10 +59,10 @@ describe ('Blockchain', function() {
         it('should add new block', function() {              
             const result = blockchain.submitStar(address, message, signature, star);   
             return Promise.all([
-                expect(result).to.eventually.have.property('hash', hash),
+                expect(result).to.eventually.have.property('hash', secondBlockHash),
                 expect(result).to.eventually.have.property('height', 1),                
-                expect(result).to.eventually.have.property('body', body),
-                expect(result).to.eventually.have.property('previousBlockHash', previousBlockHash)
+                expect(result).to.eventually.have.property('body', secondBlockBody),
+                expect(result).to.eventually.have.property('previousBlockHash', secondBlockPreviousBlockHash)
             ]);            
         });
 
@@ -77,6 +77,28 @@ describe ('Blockchain', function() {
             const result = blockchain.submitStar(address, message, invalid_signature, star);            
             return expect(result).to.eventually.rejectedWith('The bitcoin message is not valid');
         });        
+    });
+
+
+    describe('getBlockByHash', function() {
+        beforeEach(function() {
+            blockchain.submitStar(address, message, signature, star);
+        });
+
+        it('should return block as block is found', function() {
+            const result = blockchain.getBlockByHash(secondBlockHash);
+            return Promise.all([
+                expect(result).to.eventually.have.property('hash', secondBlockHash),
+                expect(result).to.eventually.have.property('height', 1),                
+                expect(result).to.eventually.have.property('body', secondBlockBody),
+                expect(result).to.eventually.have.property('previousBlockHash', secondBlockPreviousBlockHash)
+            ]); 
+        });
+
+        it('should return null as block is not found', function() {
+            const result = blockchain.getBlockByHash('foo');
+            expect(result).to.eventually.be.null;
+        });
     });
 
     afterEach(function() {
