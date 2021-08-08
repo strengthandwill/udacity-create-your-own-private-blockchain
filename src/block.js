@@ -72,7 +72,7 @@ class Block {
             // Parse the data to an object to be retrieve.
             const data = JSON.parse(decodedData)
             // Resolve with the data if the object isn't the Genesis block
-            self.height != 0 ? resolve(data) : reject(Error("Block is genesis block"));
+            self.height != 0 ? resolve(data) : reject(Error('The block is a genesis block'));
         });
     }
 }

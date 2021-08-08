@@ -120,14 +120,13 @@ class Blockchain {
                     if (bitcoinMessage.verify(message, address, signature)) {
                         let block = new BlockClass.Block({data: message});
                         await this._addBlock(block);
-                        console.log(block);
                         resolve(block); 
                     }
                 } catch (e) {
-                    reject(new Error("The bitcoin message is not valid")); 
+                    reject(new Error('The bitcoin message is not valid')); 
                 }
             } else {
-                reject(new Error("The time elapsed is more than 5 minutes"));
+                reject(new Error('The time elapsed is more than 5 minutes'));
             }
         });
     }
