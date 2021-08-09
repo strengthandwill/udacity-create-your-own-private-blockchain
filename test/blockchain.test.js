@@ -27,9 +27,9 @@ describe('Blockchain', function() {
                 "ra": "16h 29m 1.0s",
                 "story": "Testing the story 4"
             },
-            hash: 'ced50b721368addc8cdd0d5aeebaddd33282db481e326e40fb83ca105e4eae5f',
+            hash: 'c20dd0648ac674e7f87bfab13fdaf56dfd42a136c1de72662cc3d2f638cbff49',
             height: 1,
-            body: '7b2264617461223a226e31575371506b444258576e563355477369456b7879754a76786152587266664c433a313535343134353334333a737461725265676973747279227d',
+            body: '7b226f776e6572223a226e31575371506b444258576e563355477369456b7879754a76786152587266664c43222c2273746172223a7b22646563223a223638c2b0203532272035362e39222c227261223a223136682032396d20312e3073222c2273746f7279223a2254657374696e67207468652073746f72792034227d7d',
             previousHash: 'd05de81ce1e904a581d5f25c8789c5e1fe61f5d647bdcdbc65dfc6ce57bf42ec'
         },
         thirdBlock: {
@@ -42,10 +42,10 @@ describe('Blockchain', function() {
                 "ra": "18h 40m 2.0s",
                 "story": "Testing the story 5"
             },            
-            hash: 'af9faf7494f76d067d4de8a1cab5cc3f45bd7f3fb12507534aff29b3dea10fbb',
+            hash: 'c7509a56b3365ccf3399c73917566e81d6cb17c9a99a5a7128a907543c49f091',
             height: 2,
-            body: '7b2264617461223a226d6f484e556e6e5242435657565057647769797546696645636b626d37475038634a3a313535343134353934333030303a737461725265676973747279227d',
-            previousHash: 'ced50b721368addc8cdd0d5aeebaddd33282db481e326e40fb83ca105e4eae5f'
+            body: '7b226f776e6572223a226d6f484e556e6e5242435657565057647769797546696645636b626d37475038634a222c2273746172223a7b22646563223a223836c2b0203235272039362e35222c227261223a223138682034306d20322e3073222c2273746f7279223a2254657374696e67207468652073746f72792035227d7d',
+            previousHash: 'c20dd0648ac674e7f87bfab13fdaf56dfd42a136c1de72662cc3d2f638cbff49'
         }
     };
 
@@ -79,9 +79,9 @@ describe('Blockchain', function() {
             clock.tick(600000);
         });
 
-        it('should add new block', function() {              
+        it('should add new block', function() {        
             const result = blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
-                data.secondBlock.signature, data.secondBlock.star);   
+                data.secondBlock.signature, data.secondBlock.star);      
             return Promise.all([
                 expect(result).to.eventually.have.property('hash', data.secondBlock.hash),
                 expect(result).to.eventually.have.property('height', data.secondBlock.height),                
@@ -136,7 +136,7 @@ describe('Blockchain', function() {
                 data.secondBlock.signature, data.secondBlock.star);
             clock.tick(600000);
             blockchain.submitStar(data.thirdBlock.address, data.thirdBlock.message, 
-                data.thirdBlock.signature, data.thirdBlock.star);            
+                data.thirdBlock.signature, data.thirdBlock.star);  
         });
 
         it('should return stars that belongs to owner', function() {            
@@ -149,6 +149,44 @@ describe('Blockchain', function() {
                 })                        
             ]);             
         });
+    });
+
+    describe('validateChain', function() {
+        beforeEach(function() {
+            clock.tick(600000);
+            blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
+                data.secondBlock.signature, data.secondBlock.star);
+            clock.tick(600000);
+            blockchain.submitStar(data.thirdBlock.address, data.thirdBlock.message, 
+                data.thirdBlock.signature, data.thirdBlock.star);            
+        });
+
+        it('should return no error when chain is valid', function() {
+            const result = blockchain.validateChain();
+            return Promise.all([
+                expect(result).to.eventually.have.length(0)
+            ]);
+        });
+
+        it('should return error when there is invalid block(s)', function() { 
+            blockchain.chain[1].body = 'foo';
+            const result = blockchain.validateChain();
+            return Promise.all([
+                expect(result).to.eventually.have.length(1),
+                expect(result).to.eventually.have.include(`Block ${data.secondBlock.hash} is invalid`)
+            ]);           
+        });
+
+        it('should return error when the chain is broken', function() {
+            blockchain.chain.splice(1, 1);
+            const result = blockchain.validateChain();
+            return Promise.all([
+                expect(result).to.eventually.have.length(1),
+                expect(result).to.eventually.have.include(`Block ${data.thirdBlock.hash} is broken from the chain`)
+            ]);
+        });
+
+
     });
 
     afterEach(function() {

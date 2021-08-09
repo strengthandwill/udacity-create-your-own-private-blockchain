@@ -37,7 +37,7 @@ class Block {
      */
     validate() {
         const self = this;
-        // console.log(this);
+
         return new Promise((resolve, reject) => {
             // Save in auxiliary variable the current block hash 
             const hash = self.hash;
@@ -45,6 +45,7 @@ class Block {
             
             // Recalculate the hash of the Block
             const hashRecalulated = SHA256(JSON.stringify(self)).toString();
+            self.hash = hash;
                         
             // Comparing if the hashes changed
             // Returning the Block is not valid

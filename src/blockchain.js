@@ -196,8 +196,18 @@ class Blockchain {
     validateChain() {
         let self = this;
         let errorLog = [];
-        return new Promise(async (resolve, reject) => {
-            
+        return new Promise((resolve, reject) => {
+            let promises = self.chain.map(p => {
+                if (p.validate().then(result => {
+                   if (!result) {                        
+                       errorLog.push(`Block ${p.hash} is invalid`);                       
+                   }
+                   if (p.height > 0 && p.previousBlockHash != self.chain[p.height-1].hash) {
+                        errorLog.push(`Block ${p.hash} is broken from the chain`);
+                   }
+                }));           
+            });
+            Promise.all(promises).then(() => resolve(errorLog));            
         });
     }
 }
