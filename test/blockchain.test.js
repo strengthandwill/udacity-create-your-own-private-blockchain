@@ -6,7 +6,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const sinon = require('sinon');
 
-describe('Blockchain', function() {
+describe('BlockchainTest', function() {
     let blockchain;
     let clock;
 

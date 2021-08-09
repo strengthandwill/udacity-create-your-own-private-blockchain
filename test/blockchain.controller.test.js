@@ -9,7 +9,7 @@ const server = require('../app.js');
 const app = server.app;
 const blockchain = server.blockchain;
 
-describe('BlockchainController', () => {
+describe('BlockchainControllerTest', () => {
     const data = { 
         one: {
             time: 1554145343000,
@@ -81,7 +81,6 @@ describe('BlockchainController', () => {
                     'star': data.one.star
                 })
                 .end(function (err, res) {
-                    console.log(res.body);
                     expect(err).to.be.null;
                     expect(res).to.have.status(200);
                     expect(blockchain.chain.length).equals(length+1);
@@ -142,11 +141,10 @@ describe('BlockchainController', () => {
          it('should return error(s) when the chain is not valid', (done) => {  
             let block = blockchain.chain[blockchain.chain.length-1];
             block.body = 'foo';
-            
+
             chai.request(app)
                 .get('/validateChain')
-                .end(function (err, res) {
-                    console.log(res.body);                    
+                .end(function (err, res) {                    
                     expect(err).to.be.null;
                     expect(res).to.have.status(200);
                     expect(res.body.length).equals(1);
@@ -155,7 +153,6 @@ describe('BlockchainController', () => {
                 });                                          
          });
     });
-
 
     afterEach(function() {
         clock.restore();

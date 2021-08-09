@@ -6,7 +6,7 @@ const expect = chai.expect;
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
-describe('Block', function() {
+describe('BlockTest', function() {
     let block;
 
     beforeEach(function() {
