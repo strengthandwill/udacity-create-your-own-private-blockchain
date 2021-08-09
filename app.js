@@ -54,4 +54,4 @@ class ApplicationServer {
 
 }
 
-new ApplicationServer();
+module.exports = new ApplicationServer();

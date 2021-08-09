@@ -11,13 +11,13 @@ describe('Blockchain', function() {
     let clock;
 
     const data = {
-        genesisBlock: {
+        genesis: {
             time: 1554144743000,
             hash: 'd05de81ce1e904a581d5f25c8789c5e1fe61f5d647bdcdbc65dfc6ce57bf42ec',
             height: 0,
             body: '7b2264617461223a2247656e6573697320426c6f636b227d'
         },  
-        secondBlock: {
+        one: {
             time: 1554145343000,
             address: 'n1WSqPkDBXWnV3UGsiEkxyuJvxaRXrffLC',
             message: 'n1WSqPkDBXWnV3UGsiEkxyuJvxaRXrffLC:1554145343:starRegistry',
@@ -32,7 +32,7 @@ describe('Blockchain', function() {
             body: '7b226f776e6572223a226e31575371506b444258576e563355477369456b7879754a76786152587266664c43222c2273746172223a7b22646563223a223638c2b0203532272035362e39222c227261223a223136682032396d20312e3073222c2273746f7279223a2254657374696e67207468652073746f72792034227d7d',
             previousHash: 'd05de81ce1e904a581d5f25c8789c5e1fe61f5d647bdcdbc65dfc6ce57bf42ec'
         },
-        thirdBlock: {
+        two: {
             time: 1554145943000,
             address: 'moHNUnnRBCVWVPWdwiyuFifEckbm7GP8cJ',
             message: 'moHNUnnRBCVWVPWdwiyuFifEckbm7GP8cJ:1554145943000:starRegistry',
@@ -50,7 +50,7 @@ describe('Blockchain', function() {
     };
 
     beforeEach(function() {
-        clock = sinon.useFakeTimers({ now: data.genesisBlock.time });
+        clock = sinon.useFakeTimers({ now: data.genesis.time });
         blockchain = new BlockchainClass.Blockchain();
     });
 
@@ -58,49 +58,52 @@ describe('Blockchain', function() {
         it('should create Genesis Block', function() {            
             const result = blockchain.chain[0];
             return Promise.all([
-                expect(result).to.have.property('hash', data.genesisBlock.hash),
-                expect(result).to.have.property('height', data.genesisBlock.height),
-                expect(result).to.have.property('body', data.genesisBlock.body),
+                expect(result).to.have.property('hash', data.genesis.hash),
+                expect(result).to.have.property('height', data.genesis.height),
+                expect(result).to.have.property('body', data.genesis.body),
                 expect(result).to.have.property('previousBlockHash', null)
             ]);            
         });
     });
 
     describe ('requestMessageOwnershipVerification()', function() {
+        beforeEach(function() {
+            clock = sinon.useFakeTimers({ now: data.one.time });
+        });
+
         it('should return message', function() {
-            clock.tick(600000);
-            const result = blockchain.requestMessageOwnershipVerification(data.secondBlock.address);
-            return expect(result).to.eventually.be.equal(data.secondBlock.message);
+            const result = blockchain.requestMessageOwnershipVerification(data.one.address);
+            return expect(result).to.eventually.be.equal(data.one.message);
         });
     });
 
     describe('submitStar()', function() {
         beforeEach(function() {
-            clock.tick(600000);
+            clock = sinon.useFakeTimers({ now: data.one.time });
         });
 
         it('should add new block', function() {        
-            const result = blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
-                data.secondBlock.signature, data.secondBlock.star);      
+            const result = blockchain.submitStar(data.one.address, data.one.message, 
+                data.one.signature, data.one.star);      
             return Promise.all([
-                expect(result).to.eventually.have.property('hash', data.secondBlock.hash),
-                expect(result).to.eventually.have.property('height', data.secondBlock.height),                
-                expect(result).to.eventually.have.property('body', data.secondBlock.body),
-                expect(result).to.eventually.have.property('previousBlockHash', data.secondBlock.previousHash)
+                expect(result).to.eventually.have.property('hash', data.one.hash),
+                expect(result).to.eventually.have.property('height', data.one.height),                
+                expect(result).to.eventually.have.property('body', data.one.body),
+                expect(result).to.eventually.have.property('previousBlockHash', data.one.previousHash)
             ]);            
         });
 
         it('should return error that the time elapsed is more than 5 minutes', function() {   
-            clock = sinon.useFakeTimers({ now: data.secondBlock.time + 301000 });
-            const result = blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
-                data.secondBlock.signature, data.secondBlock.star);              
+            clock = sinon.useFakeTimers({ now: data.one.time + 301000 });
+            const result = blockchain.submitStar(data.one.address, data.one.message, 
+                data.one.signature, data.one.star);              
             return expect(result).to.eventually.rejectedWith('The time elapsed is more than 5 minutes');
         });
 
         it('should return error that the bitcoin message is invalid', function() {              
             const invalid_signature = 'foo';
-            const result = blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
-                invalid_signature, data.secondBlock.star);              
+            const result = blockchain.submitStar(data.one.address, data.one.message, 
+                invalid_signature, data.one.star);              
             return expect(result).to.eventually.rejectedWith('The bitcoin message is not valid');
         });        
     });
@@ -108,18 +111,18 @@ describe('Blockchain', function() {
 
     describe('getBlockByHash', function() {
         beforeEach(function() {
-            clock.tick(600000);
-            blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
-                data.secondBlock.signature, data.secondBlock.star);
+            clock = sinon.useFakeTimers({ now: data.one.time });
+            blockchain.submitStar(data.one.address, data.one.message, 
+                data.one.signature, data.one.star);
         });
 
         it('should return block as block is found', function() {
-            const result = blockchain.getBlockByHash(data.secondBlock.hash);
+            const result = blockchain.getBlockByHash(data.one.hash);
             return Promise.all([
-                expect(result).to.eventually.have.property('hash', data.secondBlock.hash),
-                expect(result).to.eventually.have.property('height', data.secondBlock.height),                
-                expect(result).to.eventually.have.property('body', data.secondBlock.body),
-                expect(result).to.eventually.have.property('previousBlockHash', data.secondBlock.previousHash)
+                expect(result).to.eventually.have.property('hash', data.one.hash),
+                expect(result).to.eventually.have.property('height', data.one.height),                
+                expect(result).to.eventually.have.property('body', data.one.body),
+                expect(result).to.eventually.have.property('previousBlockHash', data.one.previousHash)
             ]); 
         });
 
@@ -131,21 +134,21 @@ describe('Blockchain', function() {
 
     describe('getStarsByWalletAddress', function() {
         beforeEach(function() {
-            clock.tick(600000);
-            blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
-                data.secondBlock.signature, data.secondBlock.star);
-            clock.tick(600000);
-            blockchain.submitStar(data.thirdBlock.address, data.thirdBlock.message, 
-                data.thirdBlock.signature, data.thirdBlock.star);  
+            clock = sinon.useFakeTimers({ now: data.one.time });
+            blockchain.submitStar(data.one.address, data.one.message, 
+                data.one.signature, data.one.star);
+                clock = sinon.useFakeTimers({ now: data.two.time });
+            blockchain.submitStar(data.two.address, data.two.message, 
+                data.two.signature, data.two.star);  
         });
 
         it('should return stars that belongs to owner', function() {            
-            const result = blockchain.getStarsByWalletAddress(data.secondBlock.address);            
+            const result = blockchain.getStarsByWalletAddress(data.one.address);            
             return Promise.all([
                 expect(result).to.eventually.have.length(1),                
                 expect(result).to.eventually.deep.include({ 
-                    owner: data.secondBlock.address, 
-                    star: data.secondBlock.star 
+                    owner: data.one.address, 
+                    star: data.one.star 
                 })                        
             ]);             
         });
@@ -153,12 +156,12 @@ describe('Blockchain', function() {
 
     describe('validateChain', function() {
         beforeEach(function() {
-            clock.tick(600000);
-            blockchain.submitStar(data.secondBlock.address, data.secondBlock.message, 
-                data.secondBlock.signature, data.secondBlock.star);
-            clock.tick(600000);
-            blockchain.submitStar(data.thirdBlock.address, data.thirdBlock.message, 
-                data.thirdBlock.signature, data.thirdBlock.star);            
+            clock = sinon.useFakeTimers({ now: data.one.time });
+            blockchain.submitStar(data.one.address, data.one.message, 
+                data.one.signature, data.one.star);
+                clock = sinon.useFakeTimers({ now: data.two.time });
+            blockchain.submitStar(data.two.address, data.two.message, 
+                data.two.signature, data.two.star);  
         });
 
         it('should return no error when chain is valid', function() {
@@ -173,7 +176,7 @@ describe('Blockchain', function() {
             const result = blockchain.validateChain();
             return Promise.all([
                 expect(result).to.eventually.have.length(1),
-                expect(result).to.eventually.have.include(`Block ${data.secondBlock.hash} is invalid`)
+                expect(result).to.eventually.have.include(`Block ${data.one.hash} is invalid`)
             ]);           
         });
 
@@ -182,11 +185,9 @@ describe('Blockchain', function() {
             const result = blockchain.validateChain();
             return Promise.all([
                 expect(result).to.eventually.have.length(1),
-                expect(result).to.eventually.have.include(`Block ${data.thirdBlock.hash} is broken from the chain`)
+                expect(result).to.eventually.have.include(`Block ${data.two.hash} is broken from the chain`)
             ]);
         });
-
-
     });
 
     afterEach(function() {
