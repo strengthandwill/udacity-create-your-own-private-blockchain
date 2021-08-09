@@ -72,7 +72,8 @@ class Blockchain {
                 block.height = this.chain.length;
                 block.hash = SHA256(JSON.stringify(block)).toString();
                 this.chain.push(block);
-                resolve(block);
+                self.validateChain().then(errorLog => 
+                    errorLog.length == 0? resolve(block) : reject(Error(errorLog)));
             } catch (error) {
                 reject(Error(error));
             }
