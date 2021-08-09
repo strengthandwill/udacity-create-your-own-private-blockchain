@@ -118,7 +118,7 @@ class Blockchain {
             if (currentTime - time <= 300) {    
                 try {
                     if (bitcoinMessage.verify(message, address, signature)) {
-                        let block = new BlockClass.Block({data: message});
+                        let block = new BlockClass.Block({ owner: address, star: star });
                         await this._addBlock(block);
                         resolve(block); 
                     }
@@ -175,8 +175,15 @@ class Blockchain {
     getStarsByWalletAddress (address) {
         let self = this;
         let stars = [];
-        return new Promise((resolve, reject) => {
-            
+        return new Promise((resolve, reject) => {            
+            let promises = self.chain.map(p => {
+                p.getBData().then(result => {                     
+                    if (result.owner === address) {
+                        stars.push(result);
+                    }                
+                });
+            });
+            Promise.all(promises).then(() => resolve(stars));                        
         });
     }
 

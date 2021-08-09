@@ -67,8 +67,12 @@ class Block {
         return new Promise((resolve, reject) => {
             // Getting the encoded data saved in the Block            
             const encodedData = self.body;
+            
             // Decoding the data to retrieve the JSON representation of the object
-            const decodedData = hex2ascii(encodedData);
+            // ** Did not use hex2ascii as it convert '°' to 'Â°', but used Buffer.from().toString() **
+            const decodedData = Buffer.from(encodedData, 'hex').toString('utf8');
+            // const decodedData = hex2ascii(encodedData);
+
             // Parse the data to an object to be retrieve.
             const data = JSON.parse(decodedData)
             // Resolve with the data if the object isn't the Genesis block
