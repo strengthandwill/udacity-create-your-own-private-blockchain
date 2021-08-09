@@ -9,7 +9,7 @@ const server = require('../app.js');
 const app = server.app;
 const blockchain = server.blockchain;
 
-describe("BlockchainController", () => {
+describe('BlockchainController', () => {
     const data = { 
         one: {
             time: 1554145343000,
@@ -41,8 +41,8 @@ describe("BlockchainController", () => {
         clock = sinon.useFakeTimers({ now: data.one.time });  
     });
 
-    describe("getBlockByHeight", () => {        
-        it("should get the genesis block", (done) => {
+    describe('getBlockByHeight', () => {        
+        it('should get the genesis block', (done) => {
             const height = 0;         
             chai.request(app)
                 .get(`/block/height/${height}`)
@@ -55,8 +55,8 @@ describe("BlockchainController", () => {
          });
     });
 
-    describe("requestOwnership", () => {
-        it("should return the message", (done) => {                      
+    describe('requestOwnership', () => {
+        it('should return the message', (done) => {                      
             chai.request(app)
                 .post('/requestValidation')
                 .send({ 'address': data.one.address })
@@ -69,16 +69,16 @@ describe("BlockchainController", () => {
          });
     });
 
-    describe("submitStar", () => {
-        it("should add new star", (done) => {
+    describe('submitStar', () => {
+        it('should add new star', (done) => {
             const length = blockchain.chain.length;
             chai.request(app)
                 .post('/submitstar')
                 .send({
-                    "address": data.one.address,
-                    "message": data.one.message,
-                    "signature": data.one.signature,
-                    "star": data.one.star
+                    'address': data.one.address,
+                    'message': data.one.message,
+                    'signature': data.one.signature,
+                    'star': data.one.star
                 })
                 .end(function (err, res) {
                     console.log(res.body);
@@ -90,7 +90,7 @@ describe("BlockchainController", () => {
          });
     });
 
-    describe("getStarsByOwner", () => {
+    describe('getStarsByOwner', () => {
         beforeEach(function() {
             clock = sinon.useFakeTimers({ now: data.two.time });
             blockchain.submitStar(
@@ -101,7 +101,7 @@ describe("BlockchainController", () => {
             );
         });
 
-        it("should get star(s) by addressr", (done) => {  
+        it('should get star(s) by addressr', (done) => {  
             const address = data.two.address;
             chai.request(app)
                 .get(`/blocks/${address}`)
@@ -114,6 +114,48 @@ describe("BlockchainController", () => {
                 });                                          
          });
     });
+
+    describe('validateChain', () => {
+        let block;
+
+        beforeEach(function() {
+            clock = sinon.useFakeTimers({ now: data.one.time });
+            blockchain.submitStar(
+                data.one.address,
+                data.one.message,
+                data.one.signature,
+                data.one.star
+            );
+        });
+
+        it('should return no error when the the chain is valid', (done) => {  
+            chai.request(app)
+                .get('/validateChain')
+                .end(function (err, res) {                   
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.text).equals('The chain is valid.');
+                    done();
+                });                                          
+         });
+
+         it('should return error(s) when the chain is not valid', (done) => {  
+            let block = blockchain.chain[blockchain.chain.length-1];
+            block.body = 'foo';
+            
+            chai.request(app)
+                .get('/validateChain')
+                .end(function (err, res) {
+                    console.log(res.body);                    
+                    expect(err).to.be.null;
+                    expect(res).to.have.status(200);
+                    expect(res.body.length).equals(1);
+                    expect(res.body).to.include(`Block ${block.hash} is invalid`);
+                    done();
+                });                                          
+         });
+    });
+
 
     afterEach(function() {
         clock.restore();
