@@ -1,4 +1,4 @@
-# Create Your Own Private Blockchain
+# Udacity Create Your Own Private Blockchain
 
 ## Complete unfinished block.js implementation
 - Tests for block.js are written in `block.test.gs`.
